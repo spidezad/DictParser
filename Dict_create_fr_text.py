@@ -1,0 +1,167 @@
+"""
+    Module to create series of dict from text file.
+    The text file must be of certain format for retrieval.
+
+    eg of format used for different dict used in a setting text file.
+
+        $first
+        aa:bbb,cccc,1,2,3
+        1:1,bbb,cccc,1,2,3
+
+        $second
+        ee:bbb,cccc,1,2,3
+        2:1,bbb,cccc,1,2,3
+
+    Will get two dict object (first & second). each with two keys.
+    $ - defined the dict name
+    the key and value will be the following lines of form key:value.
+    The value will be a list of items of the correct base type.
+    
+
+"""
+import os, time, sys, ast, re
+
+class DictParser(object):
+    
+    def __init__(self,target_fname):
+        self.target_fname =  target_fname
+
+    def read_all_data_fr_file(self):
+        """Method to read all the lines from the file and store it to a list
+
+        """
+        with open(self.target_fname,'r') as f:
+            self.filedata = f.readlines()
+
+    def is_line_dict_name(self, line):
+        """
+            Method to check if the line is a start of new dict and also the dict name.
+            Args:
+                line (str): particular line from the text file
+            Returns:
+                (bool): True if contain the dict name
+
+        """
+        line = line.lstrip()
+        if not line == '':
+            return line.startswith('$')
+        else:
+            return 0
+
+    def parse_dict_name(self, line):
+        """ Method to parse the dict name from a particular line.
+            Use the '$' to denote the line as header.
+            Args:
+                line (str): particular line from the text file
+            Returns:
+                (str): dict name
+        """
+        line = line.lstrip()
+        if '$' not in line or line == '' :
+            raise ValueError('"$" not present in line. Line is not able to parse')
+        else:
+            return line.lstrip('$').strip()
+
+    def is_line_key(self, line):
+        """Method to check if line is a key. Key line will start with 'keyname:' and will start after the dict
+
+
+        """
+        if not ':' in line: return False
+        if line.split(':')[1] == '':
+            ## 'no value pair for the key. skip this key'
+            return False
+
+        return True
+    
+    def parse_key(self, line):
+        """Method to parse the key value pair
+            Args:
+                line (str): particular line from the text file
+
+            Returns:
+                key (str):
+                value (list): value will always in list
+
+            TODO: not able to work with list of list. No correct format for the list??
+            Temp treat as all element are fundamental type.
+
+        
+        """
+        key,value = line.split(':')
+        key =  self.convert_str_to_correct_type(key.strip())
+        value = value.split(',')
+        value =  [n.strip() for n in value]
+        value = self.convert_list_of_str_to_type(value)
+        
+        return key, value
+
+    def parse_the_full_dict(self):
+        """Method to parse the full file of dict
+            Once detect dict name open the all the key value pairs
+
+        """
+        self.read_all_data_fr_file()
+
+        self.dict_of_dict_obj = {}
+        ## start parsing each line
+        ## intialise temp_dict obj
+        start_dict_name = ''
+        for line in self.filedata:
+            if self.is_line_dict_name(line):
+                start_dict_name = self.parse_dict_name(line)
+                ## intialize the object
+                self.dict_of_dict_obj[start_dict_name] = dict()
+                
+            elif self.is_line_key(line):
+                 
+                 temp_key, temp_value = self.parse_key(line)
+                 self.dict_of_dict_obj[start_dict_name][temp_key] = temp_value
+                    
+    
+    def convert_list_of_str_to_type(self, strlist):
+        """ Function to convert the list of str element to the correct type.
+
+            Args:
+                strlist (list): list of element where each element is a string
+
+            Returns:
+                (list) : List with correctly converted elements.
+
+            Function modified from http://stackoverflow.com/questions/2859674/converting-python-list-of-strings-to-their-type
+        """
+        
+        return [self.convert_str_to_correct_type(n) for n in strlist ]
+    
+    def convert_str_to_correct_type(self, target_str):
+        """ Method to convert the str repr to the correct type
+            Idea from http://stackoverflow.com/questions/2859674/converting-python-list-of-strings-to-their-type
+            Args:
+                target_str (str): str repr of the type
+
+            Returns:
+                (str/float/int) : return the correct representation of the type
+        """
+
+        try:
+            return ast.literal_eval(target_str)
+        except ValueError:
+            ## not converting as it is string
+            pass
+        return target_str
+
+
+if __name__ == '__main__':
+    temp_working_file = r'c:\data\temp\dictcreate.txt'
+    p = DictParser(temp_working_file)
+    p.parse_the_full_dict()
+    print p.dict_of_dict_obj
+    
+
+##L = ["hello", "3", "3.64", "-1","[1,2,4]"]
+##
+##print convert_list_of_str_to_type(L)
+
+
+
+
