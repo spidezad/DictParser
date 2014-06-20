@@ -16,7 +16,14 @@
     $ - defined the dict name
     the key and value will be the following lines of form key:value.
     The value will be a list of items of the correct base type.
-    
+
+    parse an object?? or just the object name --> then use the dict in the other class to call it??
+
+    Package naming might need to change or the class to change
+
+
+    updates:
+        Jun 19 2014: put the parse_the_full_dict method in init so it str away call
 
 """
 import os, time, sys, ast, re
@@ -25,9 +32,10 @@ class DictParser(object):
     
     def __init__(self,target_fname):
         self.target_fname =  target_fname
+        self.parse_the_full_dict()
 
     def read_all_data_fr_file(self):
-        """Method to read all the lines from the file and store it to a list
+        """Method to read all the lines from the file and store it as a list
 
         """
         with open(self.target_fname,'r') as f:
@@ -154,7 +162,7 @@ class DictParser(object):
 if __name__ == '__main__':
     temp_working_file = r'c:\data\temp\dictcreate.txt'
     p = DictParser(temp_working_file)
-    p.parse_the_full_dict()
+    #p.parse_the_full_dict()
     print p.dict_of_dict_obj
     
 
