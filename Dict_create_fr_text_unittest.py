@@ -43,6 +43,10 @@ class DictCreateTestCase(unittest.TestCase):
     def create_dict_with_multiple_object_type():
         pass
 
+    def create_comment_statement(self):
+        """Write a line to test out the comment."""
+        self.testfile.write('#commentout:no_attribute')
+
     def text_seq_creation(self):
         """write the text file in steps given"""
 
@@ -93,6 +97,9 @@ class DictCreateTest(DictCreateTestCase):
         self.assertItemsEqual( self.dictreader.parse_key('1:bbb,ccc,ddd'), (1,['bbb','ccc','ddd']))
         self.assertItemsEqual( self.dictreader.parse_key('1: bbb,ccc,ddd'), (1,['bbb','ccc','ddd']))
 
+    def test_parse_key_with_multi_colon(self):
+        self.assertItemsEqual( self.dictreader.parse_key('aaa:r"c:\data\dbb.txt"'), ('aaa',[r'c:\data\dbb.txt']))
+
     def test_parse_the_full_dict_one_dict_only(self):
         self.create_one_dict_object_in_text()
         self.close_file()
@@ -112,6 +119,15 @@ class DictCreateTest(DictCreateTestCase):
                        'second': {'ee':['bbb','cccc',1,2,3],2:[1,'bbb','cccc',1,2,3]}}
         self.assertDictEqual( self.dictreader.dict_of_dict_obj, temp_result)
 
+    def test_parse_the_full_dict_plus_one_line_comment(self):
+        self.create_one_dict_object_in_text()
+        self.create_comment_statement()
+        self.write_newline()
+        self.close_file()
+        self.dictreader = DictParser(r'c:\data\temp\dictcreate.txt')
+        self.dictreader.parse_the_full_dict()
+        temp_result =  {'aa':['bbb','cccc',1,2,3],1:[1,'bbb','cccc',1,2,3]}
+        self.assertDictEqual( self.dictreader.dict_of_dict_obj['first'], temp_result)
 
     def tearDown(self):
         try:

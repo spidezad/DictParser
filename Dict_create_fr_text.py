@@ -23,6 +23,8 @@
 
 
     updates:
+        Jun 21 2014: Add in case to handle simple comment
+                   : Debug on the key value pair to take care of case with more than one ':'
         Jun 19 2014: put the parse_the_full_dict method in init so it str away call
 
 """
@@ -39,7 +41,19 @@ class DictParser(object):
 
         """
         with open(self.target_fname,'r') as f:
-            self.filedata = f.readlines()
+            self.filedata = self.filter_comment_lines(f.readlines())
+
+    def filter_comment_lines(self, list_of_lines):
+        """Simple method to filter out comment line. Only works at the start of line marked with '#'.
+
+            Args:
+                list_of_lines (list): raw data.
+
+            Returns:
+                filtered version of the lines. 
+        """
+        return [line for line in list_of_lines if not line.startswith('#')]
+
 
     def is_line_dict_name(self, line):
         """
@@ -96,7 +110,9 @@ class DictParser(object):
 
         
         """
-        key,value = line.split(':')
+        target_search_grp = re.match('^([a-zA-Z0-9_]*):(.*)', line)
+        key = target_search_grp.group(1)
+        value = target_search_grp.group(2)
         key =  self.convert_str_to_correct_type(key.strip())
         value = value.split(',')
         value =  [n.strip() for n in value]
@@ -166,9 +182,7 @@ if __name__ == '__main__':
     print p.dict_of_dict_obj
     
 
-##L = ["hello", "3", "3.64", "-1","[1,2,4]"]
-##
-##print convert_list_of_str_to_type(L)
+
 
 
 
