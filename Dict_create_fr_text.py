@@ -1,6 +1,11 @@
 """
     Module to create series of dict from text file.
     The text file must be of certain format for retrieval.
+    
+    list of parameters
+    # - only at start of string. Comment out.
+    $ - dict name. only found in dict name, not in key, value pair.
+    @ - object. Only use for key value pair. at start of string.
 
     eg of format used for different dict used in a setting text file.
 
@@ -17,12 +22,8 @@
     the key and value will be the following lines of form key:value.
     The value will be a list of items of the correct base type.
 
-    parse an object?? or just the object name --> then use the dict in the other class to call it??
-
-    Package naming might need to change or the class to change
-
-
     updates:
+        Jul 17 204: Add in object handling
         Jun 21 2014: Add in case to handle simple comment
                    : Debug on the key value pair to take care of case with more than one ':'
         Jun 19 2014: put the parse_the_full_dict method in init so it str away call
@@ -32,9 +33,20 @@ import os, time, sys, ast, re
 
 class DictParser(object):
     
-    def __init__(self,target_fname):
+    def __init__(self,target_fname, lookup_dict = dict()):
         self.target_fname =  target_fname
+        self.input_object_lookup = lookup_dict
         self.parse_the_full_dict()
+        
+    def set_input_object_lookup(self, lookup_dict):
+        """Add in additional object in dict so that keyword with #xxx able to lookup when parse.
+
+            Args:
+                lookup_dict (dict): dict holding all required objects.
+
+        """
+        self.input_object_lookup =  lookup_dict
+
 
     def read_all_data_fr_file(self):
         """Method to read all the lines from the file and store it as a list
@@ -160,27 +172,47 @@ class DictParser(object):
     def convert_str_to_correct_type(self, target_str):
         """ Method to convert the str repr to the correct type
             Idea from http://stackoverflow.com/questions/2859674/converting-python-list-of-strings-to-their-type
+            If the target_str start with '#', indicate it is an object.
+            Will then search the self.input_object_lookup for corresponding object.
+            If no object found, return as string.
+
             Args:
                 target_str (str): str repr of the type
 
             Returns:
                 (str/float/int) : return the correct representation of the type
         """
-
+        if target_str.startswith('@'):
+            ## object detect
+            return self.map_object_to_lookup(target_str)
         try:
-            return ast.literal_eval(target_str)
-        except ValueError:
+            ans =  ast.literal_eval(target_str)
+            return ans
+        except:
             ## not converting as it is string
             pass
         return target_str
 
+    def map_object_to_lookup(self,obj_name):
+        """Map object to lookup table. Return back str if object not found
+            Args:
+                obj_name (str): object name to be use in lookup.
+            Returns:
+                (obj): Return corresponding object.
+                or (str): Return str if object not found
+        """
+        if self.input_object_lookup.has_key(obj_name[1:]):
+            return self.input_object_lookup[obj_name[1:]] # check with the # removed.
+        else:
+            return obj_name
+
 
 if __name__ == '__main__':
     temp_working_file = r'c:\data\temp\dictcreate.txt'
-    p = DictParser(temp_working_file)
-    #p.parse_the_full_dict()
-    print p.dict_of_dict_obj
     
+    p = DictParser(temp_working_file, {'a':[1,3,4]})
+    p.parse_the_full_dict()
+    print p.dict_of_dict_obj    
 
 
 

@@ -92,10 +92,18 @@ class DictCreateTest(DictCreateTestCase):
         self.assertFalse(self.dictreader.is_line_key('1:'))
 
     def test_parse_key(self):
+        cc = (1,2)
+        self.dictreader.set_input_object_lookup({'a':[1,3,4], 'car': cc})
         self.assertItemsEqual( self.dictreader.parse_key('aaa:bbb'), ('aaa',['bbb']))
         self.assertItemsEqual( self.dictreader.parse_key('1:bbb'), (1,['bbb']))
         self.assertItemsEqual( self.dictreader.parse_key('1:bbb,ccc,ddd'), (1,['bbb','ccc','ddd']))
         self.assertItemsEqual( self.dictreader.parse_key('1: bbb,ccc,ddd'), (1,['bbb','ccc','ddd']))
+        self.assertItemsEqual( self.dictreader.parse_key('1: bbb,ccc#,ddd'), (1,['bbb','ccc#','ddd']))
+        self.assertItemsEqual( self.dictreader.parse_key('1: bbb,@ccc,ddd'), (1,['bbb','@ccc','ddd']))
+        self.assertItemsEqual( self.dictreader.parse_key('1: bbb,@a,ddd'), (1,['bbb',[1,3,4],'ddd']))
+        self.assertItemsEqual( self.dictreader.parse_key('1: bbb,@b,ddd'), (1,['bbb','@b','ddd']))
+        self.assertItemsEqual( self.dictreader.parse_key('1: bbb,@car,ddd'), (1,['bbb',cc,'ddd']))
+        self.assertItemsEqual( self.dictreader.parse_key('1: bbb,#car,ddd'), (1,['bbb','#car','ddd']))
 
     def test_parse_key_with_multi_colon(self):
         self.assertItemsEqual( self.dictreader.parse_key('aaa:r"c:\data\dbb.txt"'), ('aaa',[r'c:\data\dbb.txt']))
@@ -128,6 +136,19 @@ class DictCreateTest(DictCreateTestCase):
         self.dictreader.parse_the_full_dict()
         temp_result =  {'aa':['bbb','cccc',1,2,3],1:[1,'bbb','cccc',1,2,3]}
         self.assertDictEqual( self.dictreader.dict_of_dict_obj['first'], temp_result)
+
+    def test_map_object_to_lookup(self):
+        self.dictreader.set_input_object_lookup({'a':[1,3,4]})
+        self.assertItemsEqual( self.dictreader.map_object_to_lookup('@a'),[1,3,4] )
+        self.assertEqual( self.dictreader.map_object_to_lookup('@b'), '@b')
+
+    def test_convert_str_to_correct_type(self):
+        self.dictreader.set_input_object_lookup({'a':[1,3,4]})
+        self.assertEqual( self.dictreader.convert_str_to_correct_type('@a'),[1,3,4] )
+        self.assertEqual( self.dictreader.convert_str_to_correct_type('@b'), '@b')
+        self.assertEqual( self.dictreader.convert_str_to_correct_type('b'), 'b')
+        self.assertEqual( self.dictreader.convert_str_to_correct_type('10'), 10)
+        self.assertEqual( self.dictreader.convert_str_to_correct_type('1.0'), 1.0)
 
     def tearDown(self):
         try:
