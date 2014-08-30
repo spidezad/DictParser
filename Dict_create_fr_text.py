@@ -23,6 +23,7 @@
     The value will be a list of items of the correct base type.
 
     updates:
+        Aug 28 2014: Add in special character handling for parsing keys.
         Jul 17 204: Add in object handling
         Jun 21 2014: Add in case to handle simple comment
                    : Debug on the key value pair to take care of case with more than one ':'
@@ -122,7 +123,7 @@ class DictParser(object):
 
         
         """
-        target_search_grp = re.match('^([a-zA-Z0-9_]*):(.*)', line)
+        target_search_grp = re.match('^([a-zA-Z0-9_ ()]*):(.*)', line)
         key = target_search_grp.group(1)
         value = target_search_grp.group(2)
         key =  self.convert_str_to_correct_type(key.strip())

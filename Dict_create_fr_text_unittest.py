@@ -1,6 +1,10 @@
 """
     Unittest for Dict_create_fr_text module
 
+    Update:
+        Aug 28 2014: Add in special character handling test for parsing keys.
+        Jul 17 2014: Add in object parsing for testing
+
 """
 import os, sys, time
 import unittest
@@ -104,6 +108,7 @@ class DictCreateTest(DictCreateTestCase):
         self.assertItemsEqual( self.dictreader.parse_key('1: bbb,@b,ddd'), (1,['bbb','@b','ddd']))
         self.assertItemsEqual( self.dictreader.parse_key('1: bbb,@car,ddd'), (1,['bbb',cc,'ddd']))
         self.assertItemsEqual( self.dictreader.parse_key('1: bbb,#car,ddd'), (1,['bbb','#car','ddd']))
+        self.assertItemsEqual( self.dictreader.parse_key('Mean Recommendation (this week):1'), ('Mean Recommendation (this week)',[1]))
 
     def test_parse_key_with_multi_colon(self):
         self.assertItemsEqual( self.dictreader.parse_key('aaa:r"c:\data\dbb.txt"'), ('aaa',[r'c:\data\dbb.txt']))
